@@ -119,7 +119,7 @@ probabilidad = modelo_cargado.predict_proba(nuevos_datos_transformados)[:, 1]
 
 # Mostrar los resultados
 st.subheader("Resultado de la Predicción")
-if prediccion[0] == 1 and probabilidad>0.8:
+if prediccion[0] == 1 and probabilidad>0.5:
     st.error("El modelo predice que el paciente tiene riesgo de problemas cardiovasculares.")
 else:
     st.success("El modelo predice que el paciente NO tiene riesgo de problemas cardiovasculares.")
