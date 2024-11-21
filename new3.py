@@ -17,6 +17,23 @@ except Exception as e:
     st.error(f"Error al cargar el modelo: {e}")
     st.stop()
 
+# Crear un conjunto de datos de ejemplo para ajustar el preprocesador
+# Este dataset debe representar las características utilizadas en el modelo
+dataset_ejemplo = pd.DataFrame({
+    'Genero': ['Male', 'Female'],
+    'Colesterol': ['1', '3'],
+    'Glucosa': ['1', '3'],
+    'Fuma': ['0', '1'],
+    'Toma_alchol': ['0', '1'],
+    'Actividad_fisica': ['0', '1'],
+    'Edad': [30, 60],
+    'Altura': [160, 170],
+    'Peso': [70, 80],
+    'Presion_arterial_sistolica': [120, 140],
+    'Presion_arterial_diastolica': [80, 90],
+    'BMI': [27.34, 27.68]
+})
+
 # Definir las transformaciones del preprocesador
 columnasOHE = ['Genero']
 oneHE = OneHotEncoder(sparse_output=False, drop='first', dtype='int64', handle_unknown='ignore')
@@ -42,6 +59,9 @@ preprocessor = ColumnTransformer(
         ("MinMaxScaler", encoderMMS, columnasMMS)
     ]
 )
+
+# Ajustar el preprocesador con datos de ejemplo
+preprocessor.fit(dataset_ejemplo)
 
 # Interfaz para ingresar datos manualmente
 st.sidebar.header("Ingrese los datos del paciente")
@@ -78,7 +98,7 @@ nuevos_datos = pd.DataFrame({
 
 # Transformar los datos ingresados
 try:
-    nuevos_datos_transformados = preprocessor.transform(nuevos_datos)  # Cambiar a transform en lugar de fit_transform
+    nuevos_datos_transformados = preprocessor.transform(nuevos_datos)
 except Exception as e:
     st.error(f"Error al transformar los datos ingresados: {e}")
     st.stop()
