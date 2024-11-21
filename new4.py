@@ -4,7 +4,7 @@ import joblib
 import base64
 
 # Título de la aplicación
-st.title("Predicción de Problemas Cardiovasculares")
+st.title("Predicción de Problemas Cardiovasculares - TEST")
 st.write("Ingrese los datos del paciente para predecir la probabilidad de problemas cardiovasculares.")
 
 # Cargar el modelo y preprocesador
