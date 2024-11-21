@@ -20,7 +20,7 @@ dataset_path = 'modelo_ganador_rf.pkl'
 #dataset_path = 'modelo_ganador_logreg.pkl'
 
 #df_data = pd.read_pickle(dataset_path)
-dataset_path = joblib.load(dataset_path)
+df_data = joblib.load(dataset_path)
 
 # Preprocesamiento del dataset
 df_cat = df_data.select_dtypes(exclude='number').copy()
