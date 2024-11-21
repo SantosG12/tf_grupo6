@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.linear_model import LogisticRegression
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, MinMaxScaler
 import joblib
@@ -10,32 +9,15 @@ import joblib
 st.title("Predicción de Problemas Cardiovasculares")
 st.write("Ingrese los datos del paciente para predecir la probabilidad de problemas cardiovasculares.")
 
-# Cargar el dataset
-#dataset_path = '/mnt/data/ddf_cardio_data_fin_EDA.pickle'
-dataset_path = 'ddf_cardio_data_fin_EDA.pickle'
-#dataset_path = 'modelo_ganador_logreg.pkl'
-df_data = pd.read_pickle(dataset_path)
+# Cargar el modelo entrenado
+try:
+    modelo_cargado = joblib.load('modelo_ganador_rf.pkl')  # Carga el modelo entrenado
+    st.success("Modelo cargado exitosamente.")
+except Exception as e:
+    st.error(f"Error al cargar el modelo: {e}")
+    st.stop()
 
-# Preprocesamiento del dataset
-df_cat = df_data.select_dtypes(exclude='number').copy()
-df_num = df_data.select_dtypes(include='number').copy()
-
-df_cat = df_cat.drop(columns=['categoria_de_presión_arterial', 'BMI_category'], errors='ignore')
-df_num = df_num.drop(columns=['numeric_cardio'], errors='ignore')
-df_data = pd.concat([df_cat, df_num], axis=1).copy()
-
-# Convertir booleanos y ajustar tipos
-df_data['Problema_CardioVascular'] = df_data['Problema_CardioVascular'].replace({True: 1, False: 0}).astype('int64')
-df_data['Genero'] = df_data['Genero'].replace({1: 'Female', 2: 'Male'}).astype('object')
-df_data['Fuma'] = df_data['Fuma'].replace({True: '0', False: '1'}).astype('object')
-df_data['Toma_alchol'] = df_data['Toma_alchol'].replace({True: '0', False: '1'}).astype('object')
-df_data['Actividad_fisica'] = df_data['Actividad_fisica'].replace({True: '1', False: '0'}).astype('object')
-
-# Separar X e Y
-X = df_data.drop(columns='Problema_CardioVascular')
-y = df_data['Problema_CardioVascular']
-
-# Crear el preprocesador
+# Definir las transformaciones del preprocesador
 columnasOHE = ['Genero']
 oneHE = OneHotEncoder(sparse_output=False, drop='first', dtype='int64', handle_unknown='ignore')
 
@@ -52,6 +34,7 @@ ordinalEN = OrdinalEncoder(categories=[
 columnasMMS = ['Edad', 'Altura', 'Peso', 'Presion_arterial_sistolica', 'Presion_arterial_diastolica', 'Bmi']
 encoderMMS = MinMaxScaler()
 
+# Crear el preprocesador
 preprocessor = ColumnTransformer(
     transformers=[
         ("OneHotEncoder", oneHE, columnasOHE),
@@ -59,19 +42,6 @@ preprocessor = ColumnTransformer(
         ("MinMaxScaler", encoderMMS, columnasMMS)
     ]
 )
-
-# Transformar los datos
-X_transformed = preprocessor.fit_transform(X)
-
-# Entrenar el modelo de regresión logística
-model = LogisticRegression(max_iter=200, random_state=42)
-model.fit(X_transformed, y)
-
-# Guardar el modelo y preprocesador
-joblib.dump(model, 'modelo_logreg.pkl')
-joblib.dump(preprocessor, 'preprocessor.pkl')
-
-st.success("Modelo entrenado y listo para hacer predicciones.")
 
 # Interfaz para ingresar datos manualmente
 st.sidebar.header("Ingrese los datos del paciente")
@@ -106,20 +76,24 @@ nuevos_datos = pd.DataFrame({
     'Bmi': [bmi]
 })
 
-# Cargar el modelo y el preprocesador
-modelo_cargado = joblib.load('modelo_logreg.pkl')
-preprocessor_cargado = joblib.load('preprocessor.pkl')
-
 # Transformar los datos ingresados
-nuevos_datos_transformados = preprocessor_cargado.transform(nuevos_datos)
+try:
+    nuevos_datos_transformados = preprocessor.fit_transform(nuevos_datos)
+except Exception as e:
+    st.error(f"Error al transformar los datos ingresados: {e}")
+    st.stop()
 
 # Hacer la predicción
-prediccion = modelo_cargado.predict(nuevos_datos_transformados)
-probabilidad = modelo_cargado.predict_proba(nuevos_datos_transformados)[:, 1]
+try:
+    prediccion = modelo_cargado.predict(nuevos_datos_transformados)
+    probabilidad = modelo_cargado.predict_proba(nuevos_datos_transformados)[:, 1]
+except Exception as e:
+    st.error(f"Error al realizar la predicción: {e}")
+    st.stop()
 
 # Mostrar los resultados
 st.subheader("Resultado de la Predicción")
-if prediccion[0] == 1 and probabilidad>0.5:
+if prediccion[0] == 1 and probabilidad[0] > 0.5:
     st.error("El modelo predice que el paciente tiene riesgo de problemas cardiovasculares.")
 else:
     st.success("El modelo predice que el paciente NO tiene riesgo de problemas cardiovasculares.")
