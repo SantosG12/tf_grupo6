@@ -73,12 +73,12 @@ nuevos_datos = pd.DataFrame({
     'Peso': [peso],
     'Presion_arterial_sistolica': [presion_sistolica],
     'Presion_arterial_diastolica': [presion_diastolica],
-    'BMI': [bmi]  # Asegurarse de incluir el BMI calculado
+    'BMI': [bmi]  # BMI calculado se incluye explícitamente
 })
 
 # Transformar los datos ingresados
 try:
-    nuevos_datos_transformados = preprocessor.fit_transform(nuevos_datos)
+    nuevos_datos_transformados = preprocessor.transform(nuevos_datos)  # Cambiar a transform en lugar de fit_transform
 except Exception as e:
     st.error(f"Error al transformar los datos ingresados: {e}")
     st.stop()
