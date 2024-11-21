@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import base64
 
 # Título de la aplicación
 st.title("Predicción de Problemas Cardiovasculares")
@@ -38,26 +39,43 @@ st.sidebar.markdown(f"### BMI Calculado: **{paciente['Bmi']}**")
 # Crear un DataFrame con los datos ingresados
 nuevos_datos = pd.DataFrame([paciente])
 
-# Transformar los datos con el preprocesador
-try:
-    nuevos_datos_transformados = preprocessor.transform(nuevos_datos)
-except Exception as e:
-    st.error(f"Error al transformar los datos ingresados: {e}")
-    st.stop()
+# Agregar botón para ejecutar el modelo
+if st.button("Resultado del paciente"):
+    # Transformar los datos con el preprocesador
+    try:
+        nuevos_datos_transformados = preprocessor.transform(nuevos_datos)
+    except Exception as e:
+        st.error(f"Error al transformar los datos ingresados: {e}")
+        st.stop()
 
-# Realizar la predicción
-try:
-    prediccion = modelo_cargado.predict(nuevos_datos_transformados)
-    probabilidad = modelo_cargado.predict_proba(nuevos_datos_transformados)[:, 1]
-except Exception as e:
-    st.error(f"Error al realizar la predicción: {e}")
-    st.stop()
+    # Realizar la predicción
+    try:
+        prediccion = modelo_cargado.predict(nuevos_datos_transformados)
+        probabilidad = modelo_cargado.predict_proba(nuevos_datos_transformados)[:, 1]
+    except Exception as e:
+        st.error(f"Error al realizar la predicción: {e}")
+        st.stop()
 
-# Mostrar el resultado
-st.subheader("Resultado de la Predicción")
-if prediccion[0] == 1 and probabilidad[0] > 0.5:
-    st.error("El modelo predice que el paciente tiene riesgo de problemas cardiovasculares.")
-else:
-    st.success("El modelo predice que el paciente NO tiene riesgo de problemas cardiovasculares.")
-
-st.write(f"Probabilidad estimada de riesgo: {probabilidad[0]:.2%}")
+    # Mostrar el resultado
+    st.subheader("Resultado de la Predicción")
+    if prediccion[0] == 1 and probabilidad[0] > 0.5:
+        st.error("El modelo predice que el paciente tiene riesgo de problemas cardiovasculares.")
+        st.write(f"Probabilidad estimada de riesgo: {probabilidad[0]:.2%}")
+        
+        # Leer y codificar la imagen en base64
+        with open("cardio.jpg", "rb") as img_file:
+            encoded_image = base64.b64encode(img_file.read()).decode("utf-8")
+        
+        # Mostrar la imagen centrada y más grande
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <img src="data:image/jpeg;base64,{encoded_image}" style="width: 400px;"/>
+                <p style="font-size: 18px; font-weight: bold;">Riesgo cardiovascular detectado</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.success("El modelo predice que el paciente NO tiene riesgo de problemas cardiovasculares.")
+        st.write(f"Probabilidad estimada de riesgo: {probabilidad[0]:.2%}")
