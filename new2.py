@@ -58,7 +58,7 @@ presion_sistolica = st.sidebar.number_input("Presión Sistólica (mmHg)", min_va
 presion_diastolica = st.sidebar.number_input("Presión Diastólica (mmHg)", min_value=30, max_value=200, value=80, step=1)
 
 # Calcular BMI
-bmi = round(peso / ((altura / 100) ** 2), 2)
+bmi = st.sidebar.number_input(round(peso / ((altura / 100) ** 2), 2))
 
 # Crear DataFrame para el modelo
 nuevos_datos = pd.DataFrame({
